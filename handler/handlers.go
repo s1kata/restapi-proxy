@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 )
@@ -114,4 +115,31 @@ func (h *Handler) DeleteTasks(w http.ResponseWriter, r *http.Request){
 	w.WriteHeader(resp.StatusCode)
 	io.Copy(w,resp.Body)
 
+}
+func (h *Handler)GetHealth(w http.ResponseWriter, r *http.Request){
+	if r.Method != http.MethodGet{
+		http.Error(w, "405", http.StatusMethodNotAllowed)
+		return
+	}
+	path := "/health"
+	url := h.BaseURL + path
+	resp, err := http.Get(url)
+	if err != nil{
+		http.Error(w, "502", http.StatusBadGateway)
+		return
+	}
+	defer resp.Body.Close()
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(resp.StatusCode)
+	io.Copy(w,resp.Body)
+}
+func (h *Handler)GetApiHealth(w http.ResponseWriter, r *http.Request){
+	if r.Method != http.MethodGet{
+		http.Error(w , "405", http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(map[string]string{"status":"ok"})
+	
 }
